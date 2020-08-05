@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarParking", "CarParking\Ca
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarParking.Tests", "CarParking.Tests\CarParking.Tests.csproj", "{38366225-8266-4C68-A080-A022C1911B86}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CarParkingTests", "CarParkingTests\CarParkingTests.csproj", "{E3D83119-2362-4AD3-8D9E-07DDAA2062B1}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{38366225-8266-4C68-A080-A022C1911B86}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{38366225-8266-4C68-A080-A022C1911B86}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{38366225-8266-4C68-A080-A022C1911B86}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E3D83119-2362-4AD3-8D9E-07DDAA2062B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E3D83119-2362-4AD3-8D9E-07DDAA2062B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E3D83119-2362-4AD3-8D9E-07DDAA2062B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E3D83119-2362-4AD3-8D9E-07DDAA2062B1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

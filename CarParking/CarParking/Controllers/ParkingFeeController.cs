@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Web.Http;
 
 namespace CarParking.Controllers
 {
+    /// <summary>
+    /// Response Class 
+    /// </summary>
     public class FeeCalucateResponse
     {
         public float TotalAmount { get; set; }
@@ -16,34 +14,22 @@ namespace CarParking.Controllers
     }
     public class ParkingFeeController : ApiController
     {
-        /* string[] formats = {"M/d/yyyy h:mm:ss tt", "M/d/yyyy h:mm tt",
-                      "MM/dd/yyyy hh:mm:ss", "M/d/yyyy h:mm:ss",
-                      "M/d/yyyy hh:mm tt", "M/d/yyyy hh tt",
-                      "M/d/yyyy h:mm", "M/d/yyyy h:mm",
-                      "MM/dd/yyyy hh:mm", "M/dd/yyyy hh:mm"};*/
-        CultureInfo provider = CultureInfo.InvariantCulture;
-        System.Globalization.DateTimeStyles style = DateTimeStyles.None;
-        string[] formats = new string[] { "dd/MMM/yyyy h:m:s tt", "dd-MMM-yyyy h:m:s tt" };
-        //   [Route(@"CalculateFee/{startDateString}/{endDateString}")]
+        FeeCalucateResponse fc = new FeeCalucateResponse();
+        public ParkingFeeController() { }
         [HttpGet]
-        public FeeCalucateResponse CalculateFee//([FromUri]string startDateString, [FromUri]string endDateString)
-            (string entryTimeString, string exitTimeString)
-
+        public FeeCalucateResponse GetParkingFee(string entryTimeString, string exitTimeString)
         {
-            FeeCalucateResponse fc = new FeeCalucateResponse();
             try
             {
-                DateTime startDate;// = BuildDateTimeFromYAFormat(entryTimeString);
-                DateTime endDate;//= BuildDateTimeFromYAFormat(exitTimeString);
+                DateTime startDate;
+                DateTime endDate;
                 if (!DateTime.TryParse(entryTimeString, out startDate))
                 {
-
-                    if (!DateTime.TryParse(entryTimeString, out startDate))
-                        fc.ResponseMessage += string.Format("EntryTime  {0} is not a valid  format {1}", entryTimeString, Environment.NewLine);
+                    fc.ResponseMessage += string.Format("EntryTime  {0} is not a valid  format {1}", entryTimeString, Environment.NewLine);
                 }
                 if (!DateTime.TryParse(exitTimeString, out endDate))
                 {
-                    fc.ResponseMessage += string.Format("ExitTime format is not valid . Use one of the following {0} {1}", String.Join(",", formats.Select(o => o.ToString()).ToArray()), Environment.NewLine);
+                    fc.ResponseMessage += string.Format("ExitTime {0} is not valid format {1}", exitTimeString, Environment.NewLine);
                 }
                 if (fc.ResponseMessage == null)
                 {
@@ -67,10 +53,8 @@ namespace CarParking.Controllers
                     if ((entryDay == DayOfWeek.Saturday) || (entryDay == DayOfWeek.Sunday))
                     {
                         if ((exitDay == DayOfWeek.Saturday) || (exitDay == DayOfWeek.Sunday))
-                        {
+                        {// ("This is a weekend");
                             if (duration.TotalDays < 3)
-
-                            // ("This is a weekend");
                             {
                                 fc.ResponseMessage = " Weekend Rate";
                                 fc.TotalAmount = 10;
@@ -78,16 +62,30 @@ namespace CarParking.Controllers
                             }
                         }
                     }
+                    TimeSpan startOfExit = new TimeSpan(15, 30, 0); //3:30 PM
+                    TimeSpan endofExit = new TimeSpan(23, 30, 0); // 11:30 PM
+                    // night rate on weekdays
+                    if (startDate.Hour >= 18)
+                    {
+                        if (endDate.TimeOfDay >= startOfExit && endDate.TimeOfDay <= endofExit)
+                        {
+                            if (duration.TotalDays < 2)
+                            {
+                                fc.ResponseMessage = "Night Rate";
+                                fc.TotalAmount = 6.5F;
+                                return fc;
+                            }
+                        }
+                    }
+
                     //2 hour rate
+                    ///This needs to be  done before early  bird rate as this can be $10.00  where as Early bird rate is $13.00
                     if (duration.TotalHours < 2)
                     {
                         fc.ResponseMessage = "Hourly Rate  for 2 hour";
                         fc.TotalAmount = 10;
                         return fc;
                     }
-
-                    TimeSpan startOfExit = new TimeSpan(15, 30, 0); //3:30 PM
-                    TimeSpan endofExit = new TimeSpan(23, 30, 0); // 11:30 PM
 
                     // Early bird rate
                     if (startDate.Hour >= 6 && startDate.Hour <= 9)
@@ -102,71 +100,40 @@ namespace CarParking.Controllers
                             }
                         }
                     }
-                    // night rate
-                    if (startDate.Hour >= 18)// && startDate.Hour <= 9)
-                    {
-                        if (endDate.TimeOfDay >= startOfExit && endDate.TimeOfDay <= endofExit)
-                        {
-                            if (duration.TotalDays < 2)
-                            {
-                                fc.ResponseMessage = "Night Rate";
-                                fc.TotalAmount = 6.5F;
-                                return fc;
-                            }
-                        }
-                    }
-                    if(duration.TotalHours < 4)
+                    //flat rate  of 5 per hour upto 4 hours
+                    if (duration.TotalHours < 4)
                     {
                         fc.ResponseMessage = "Hourly rate  ";
-                        fc.TotalAmount =(float)( Math.Ceiling(duration.TotalHours)*5.0) ;
+                        fc.TotalAmount = (float)(Math.Ceiling(duration.TotalHours) * 5.0);
                         return fc;
 
                     }
-                    else
+                    else // other wise go for Daily rate
                     {
                         fc.ResponseMessage = "Daily rate  ";
                         fc.TotalAmount = (float)(Math.Ceiling(duration.TotalDays) * 20.0);
                         return fc;
                     }
-
                 }
-                //(DateTime entryTimeStamp, DateTime exitTimeStamp)
 
-                /* DateTime dtEntry = DateTime.Now;
-                 DateTime.TryParse(entryTimeString, out dtEntry);
-                 DateTime dtExit = DateTime.Now;
-                 DateTime.TryParse(exitTimeString, out dtExit);
-                 Console.WriteLine(entryTimeString);*/
-                /*  DayOfWeek entryDay = entryTimeStamp.DayOfWeek;
-                  DayOfWeek exitDay = exitTimeStamp.DayOfWeek;
-                  string entrytime = entryTimeStamp.ToShortTimeString();
-                  string exittime = exitTimeStamp.ToShortTimeString();
-                  */
             }
             catch (Exception ex)
             {
-                fc.ResponseMessage = ex.Message;// "The Input date should be in yyyyMMddTHHmmZ format";
+                fc.ResponseMessage = ex.Message;
             }
 
             return fc;
-            //  return entryTimeStamp + exitTimeStamp;
-        }/// <summary>
-         /// Convert a UTC Date String of format yyyyMMddThhmmZ into a Local Date
-         /// </summary>
-         /// <param name="dateString"></param>
-         /// <returns></returns>
-        private DateTime BuildDateTimeFromYAFormat(string dateString)
-        {
-            Regex r = new Regex(@"^\d{4}\d{2}\d{2}T\d{2}\d{2}Z$");
-            if (!r.IsMatch(dateString))
-            {
-                throw new FormatException(
-                    string.Format("{0} is not the correct format. Should be yyyyMMddTHHmmZ", dateString));
-            }
-
-            DateTime dt = DateTime.ParseExact(dateString, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
-
-            return dt;
         }
+        /// <summary>
+        /// asyn method for the ParkingFee
+        /// </summary>
+        /// <param name="entryTimeString"></param>
+        /// <param name="exitTimeString"></param>
+        /// <returns></returns>
+        public async Task<FeeCalucateResponse> GetParkingFeeAsync(string entryTimeString, string exitTimeString)
+        {
+            return await Task.FromResult(GetParkingFee(entryTimeString, exitTimeString));
+        }
+
     }
 }
