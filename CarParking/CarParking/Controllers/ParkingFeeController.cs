@@ -12,6 +12,7 @@ namespace CarParking.Controllers
         public float TotalAmount { get; set; }
         public string ResponseMessage { get; set; }
     }
+
     public class ParkingFeeController : ApiController
     {
         FeeCalucateResponse fc = new FeeCalucateResponse();
@@ -47,8 +48,7 @@ namespace CarParking.Controllers
                         fc.TotalAmount = 5;
                         return fc;
                     }
-
-
+                    
                     //Weekend rate
                     if ((entryDay == DayOfWeek.Saturday) || (entryDay == DayOfWeek.Sunday))
                     {
